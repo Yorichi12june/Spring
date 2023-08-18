@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class QuoteController {
 
+	Logger logger = LoggerFactory.getLogger(QuoteController.class);
 	private final static Quote NONE = new Quote("None");
 	private final static Random RANDOMIZER = new Random();
 
@@ -38,18 +41,29 @@ public class QuoteController {
 
 	@GetMapping("/api")
 	public List<QuoteResource> getAll() {
-
-		return repository.findAll().stream()
-			.map(quote -> new QuoteResource(quote, "success"))
-			.collect(Collectors.toList());
+		
+		
+		List<QuoteResource> quotes = repository.findAll().stream()
+				.map(quote -> new QuoteResource(quote, "success"))
+				.collect(Collectors.toList());
+		
+		logger.debug("Response is:"+quotes.toString());
+		
+		return quotes;
+		
 	}
 
 	@GetMapping("/api/{id}")
 	public QuoteResource getOne(@PathVariable Long id) {
 
-		return repository.findById(id)
+		QuoteResource quoteResource =  repository.findById(id)
 			.map(quote -> new QuoteResource(quote, "success"))
 			.orElse(new QuoteResource(NONE, "Quote " + id + " does not exist"));
+		
+			logger.debug("Response is:"+quoteResource.toString());
+		
+		return quoteResource;
+		
 	}
 
 	@GetMapping("/api/random")
