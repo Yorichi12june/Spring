@@ -84,6 +84,20 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api -->
+<dependency>
+    <groupId>io.opentelemetry</groupId>
+    <artifactId>opentelemetry-api</artifactId>
+    <version>1.29.0</version>
+</dependency>
+		<!-- https://mvnrepository.com/artifact/io.opentelemetry.javaagent/opentelemetry-javaagent-api -->
+<dependency>
+    <groupId>io.opentelemetry.javaagent</groupId>
+    <artifactId>opentelemetry-javaagent-api</artifactId>
+    <version>0.13.1</version>
+    <scope>runtime</scope>
+</dependency>
+		
 	</dependencies>
 
 	<build>

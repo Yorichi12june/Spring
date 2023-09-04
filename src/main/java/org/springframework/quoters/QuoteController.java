@@ -26,16 +26,33 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongHistogram;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
+
 @RestController
 public class QuoteController {
 
 	Logger logger = LoggerFactory.getLogger(QuoteController.class);
 	private final static Quote NONE = new Quote("None");
 	private final static Random RANDOMIZER = new Random();
+	 private final AttributeKey<String> ATTR_METHOD = AttributeKey.stringKey("method");
+
+	  private final Random random = new Random();
+	  private final Tracer tracer;
+	  private final LongHistogram doWorkHistogram;
 
 	private final QuoteRepository repository;
 
-	public QuoteController(QuoteRepository repository) {
+	public QuoteController(QuoteRepository repository,OpenTelemetry openTelemetry) {
+		tracer = openTelemetry.getTracer(QuotersIncorporatedApplication.class.getName());
+	    Meter meter = openTelemetry.getMeter(QuotersIncorporatedApplication.class.getName());
+	    doWorkHistogram = meter.histogramBuilder("do-work").ofLongs().build();
 		this.repository = repository;
 	}
 
@@ -70,6 +87,24 @@ public class QuoteController {
 	public QuoteResource getRandomOne() {
 		return getOne(nextLong(1, repository.count() + 1));
 	}
+	
+	@GetMapping("/ping")
+	  public String ping() throws InterruptedException {
+	    int sleepTime = random.nextInt(200);
+	    doWork(sleepTime);
+	    doWorkHistogram.record(sleepTime, Attributes.of(ATTR_METHOD, "ping"));
+	    return "pong";
+	  }
+
+	  private void doWork(int sleepTime) throws InterruptedException {
+	    Span span = tracer.spanBuilder("doWork").startSpan();
+	    try (Scope ignored = span.makeCurrent()) {
+	      Thread.sleep(sleepTime);
+	      logger.info("A sample log message!");
+	    } finally {
+	      span.end();
+	    }
+	  }
 
 	private long nextLong(long lowerRange, long upperRange) {
 		return (long) (RANDOMIZER.nextDouble() * (upperRange - lowerRange)) + lowerRange;

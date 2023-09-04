@@ -18,6 +18,10 @@ package org.springframework.quoters;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 
 @SpringBootApplication
 public class QuotersIncorporatedApplication {
@@ -25,4 +29,9 @@ public class QuotersIncorporatedApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(QuotersIncorporatedApplication.class, args);
 	}
+	
+	@Bean
+	  public OpenTelemetry openTelemetry() {
+	    return GlobalOpenTelemetry.get();
+	  }
 }
